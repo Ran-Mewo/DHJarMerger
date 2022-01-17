@@ -1,0 +1,32 @@
+plugins {
+    id 'java'
+    id 'java-gradle-plugin'
+    id 'com.github.johnrengelman.shadow' version '7.0.0'
+    id 'maven-publish'
+    id 'com.gradle.plugin-publish' version '0.16.0'
+}
+
+group 'io.github.rancraftplayz.jarmerger'
+version '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    shadowMe
+}
+
+dependencies {
+    implementation gradleApi()
+    implementation 'commons-io:commons-io:2.11.0'
+    shadowMe 'commons-io:commons-io:2.11.0'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    shadowMe fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+shadowJar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    configurations = [project.configurations.getByName("shadowMe")]
+    archiveClassifier.set(null)
+}
