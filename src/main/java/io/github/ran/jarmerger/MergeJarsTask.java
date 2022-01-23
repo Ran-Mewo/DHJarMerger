@@ -1,4 +1,4 @@
-package io.github.rancraftplayz.jarmerger;
+package io.github.ran.jarmerger;
 
 import fr.stevecohen.jarmanager.JarPacker;
 import fr.stevecohen.jarmanager.JarUnpacker;
