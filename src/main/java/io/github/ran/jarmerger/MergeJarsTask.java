@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.HashSet;
 import java.util.Set;
@@ -74,9 +75,17 @@ public class MergeJarsTask extends DefaultTask {
 
 
         Set<PosixFilePermission> perms = new HashSet<>(); // Create a list of the perms
+        // Adds all permissions to the jar
+        perms.add(PosixFilePermission.OTHERS_EXECUTE);
+        perms.add(PosixFilePermission.OTHERS_WRITE);
+        perms.add(PosixFilePermission.OTHERS_READ);
+        perms.add(PosixFilePermission.OWNER_EXECUTE);
+        perms.add(PosixFilePermission.OWNER_WRITE);
+        perms.add(PosixFilePermission.OWNER_READ);
         perms.add(PosixFilePermission.GROUP_EXECUTE);
-//        perms.add(PosixFilePermission.);
-        Files.setPosixFilePermissions(new File(jarMerger, jar + ".jar").toPath(), perms); // Apply the perms onto the jar
+        perms.add(PosixFilePermission.GROUP_WRITE);
+        perms.add(PosixFilePermission.GROUP_READ);
+        Files.setPosixFilePermissions(Path.of(new File(jarMerger, jar + ".jar").getAbsolutePath()), perms); // Apply the perms onto the jar
 
 
         deleteDirectory(fabricTemps);
