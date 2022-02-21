@@ -10,6 +10,10 @@ import java.io.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.HashSet;
+import java.util.Set;
 
 public class MergeJarsTask extends DefaultTask {
     @TaskAction
@@ -67,6 +71,13 @@ public class MergeJarsTask extends DefaultTask {
 
 //        compress(mergedJar.getAbsolutePath());
         packer.pack(mergedJar.getAbsolutePath(), new File(jarMerger, jar + ".jar").getAbsolutePath());
+
+
+        Set<PosixFilePermission> perms = new HashSet<>(); // Create a list of the perms
+        perms.add(PosixFilePermission.GROUP_EXECUTE);
+//        perms.add(PosixFilePermission.);
+        Files.setPosixFilePermissions(new File(jarMerger, jar + ".jar").toPath(), perms); // Apply the perms onto the jar
+
 
         deleteDirectory(fabricTemps);
         deleteDirectory(mergedJar);
