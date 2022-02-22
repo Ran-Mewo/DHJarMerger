@@ -3,6 +3,7 @@ package io.github.ran.jarmerger;
 import fr.stevecohen.jarmanager.JarPacker;
 import fr.stevecohen.jarmanager.JarUnpacker;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
 
@@ -32,6 +33,34 @@ public class MergeJarsTask extends DefaultTask {
             forgeTemps.delete();
         }
         forgeTemps.mkdirs();
+        File forgeJar = null;
+        File fabricJar = null;
+        File forgeJarFolder = getProject().getProjectDir().toPath().resolve("forge/build/libs/").toFile();
+        File fabricJarFolder = getProject().getProjectDir().toPath().resolve("fabric/build/libs/").toFile();
+
+        int froge = 0;
+        for(File file : forgeJarFolder.listFiles()) {
+            if (froge == 0) {
+                froge = file.getName().length();
+            }
+
+            if (file.getName().length() <= froge) {
+                froge = file.getName().length();
+                forgeJar = file;
+            }
+        }
+
+        int fabric = 0;
+        for(File file : fabricJarFolder.listFiles()) {
+            if (fabric == 0) {
+                fabric = file.getName().length();
+            }
+
+            if (file.getName().length() <= fabric) {
+                fabric = file.getName().length();
+                fabricJar = file;
+            }
+        }
 
         String jar = getProject().getName() + "-" + getProject().getVersion();
 
@@ -44,9 +73,6 @@ public class MergeJarsTask extends DefaultTask {
         if (new File(jarMerger, jar + ".jar").exists()) {
             new File(jarMerger, jar + ".jar").delete();
         }
-
-        File forgeJar = getProject().getProjectDir().toPath().resolve("forge/build/libs/" + jar + ".jar").toFile();
-        File fabricJar = getProject().getProjectDir().toPath().resolve("fabric/build/libs/" + jar + ".jar").toFile();
 
         JarUnpacker jarUnpacker = new JarUnpacker();
         jarUnpacker.unpack(forgeJar.getAbsolutePath(), forgeTemps.getAbsolutePath());
