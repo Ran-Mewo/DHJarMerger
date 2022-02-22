@@ -3,6 +3,7 @@ package io.github.ran.jarmerger;
 import fr.stevecohen.jarmanager.JarPacker;
 import fr.stevecohen.jarmanager.JarUnpacker;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
 
@@ -10,6 +11,11 @@ import java.io.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.HashSet;
+import java.util.Set;
 
 public class MergeJarsTask extends DefaultTask {
     @TaskAction
@@ -28,7 +34,40 @@ public class MergeJarsTask extends DefaultTask {
         }
         forgeTemps.mkdirs();
 
+        File forgeJar = null;
+        File fabricJar = null;
+
+        File forgeJarFolder = getProject().getProjectDir().toPath().resolve("forge/build/libs/").toFile();
+        File fabricJarFolder = getProject().getProjectDir().toPath().resolve("fabric/build/libs/").toFile();
+
+        File[] fileListForge = forgeJarFolder.listFiles();
+        File[] fileListFabric = fabricJarFolder.listFiles();
+        int froge = 0;
+        for (File file : fileListForge) {
+            if (froge == 0) {
+                froge = file.getName().length();
+            }
+            if (file.getName().length() <= froge) {
+                froge = file.getName().length();
+                forgeJar = file;
+            }
+        }
+
+        int fabric = 0;
+        for (File file : fileListFabric) {
+            if (fabric == 0) {
+                fabric = file.getName().length();
+            }
+            if (file.getName().length() <= fabric) {
+                fabric = file.getName().length();
+                fabricJar = file;
+            }
+        }
+
         String jar = getProject().getName() + "-" + getProject().getVersion();
+        if (forgeJar.getName().contains("_")) {
+            jar = FilenameUtils.getBaseName(forgeJar.getName());
+        }
 
         File mergedJar = new File(jarMerger, jar);
         if (mergedJar.exists()) {
@@ -39,9 +78,6 @@ public class MergeJarsTask extends DefaultTask {
         if (new File(jarMerger, jar + ".jar").exists()) {
             new File(jarMerger, jar + ".jar").delete();
         }
-
-        File forgeJar = getProject().getProjectDir().toPath().resolve("forge/build/libs/" + jar + ".jar").toFile();
-        File fabricJar = getProject().getProjectDir().toPath().resolve("fabric/build/libs/" + jar + ".jar").toFile();
 
         JarUnpacker jarUnpacker = new JarUnpacker();
         jarUnpacker.unpack(forgeJar.getAbsolutePath(), forgeTemps.getAbsolutePath());
@@ -67,6 +103,19 @@ public class MergeJarsTask extends DefaultTask {
 
 //        compress(mergedJar.getAbsolutePath());
         packer.pack(mergedJar.getAbsolutePath(), new File(jarMerger, jar + ".jar").getAbsolutePath());
+
+        Set<PosixFilePermission> perms = new HashSet<>(); // Create a list of the perms
+        // Adds all permissions to the jar
+        perms.add(PosixFilePermission.OTHERS_EXECUTE);
+        perms.add(PosixFilePermission.OTHERS_WRITE);
+        perms.add(PosixFilePermission.OTHERS_READ);
+        perms.add(PosixFilePermission.OWNER_EXECUTE);
+        perms.add(PosixFilePermission.OWNER_WRITE);
+        perms.add(PosixFilePermission.OWNER_READ);
+        perms.add(PosixFilePermission.GROUP_EXECUTE);
+        perms.add(PosixFilePermission.GROUP_WRITE);
+        perms.add(PosixFilePermission.GROUP_READ);
+        Files.setPosixFilePermissions(Path.of(new File(jarMerger, jar + ".jar").getAbsolutePath()), perms); // Apply the perms onto the jar
 
         deleteDirectory(fabricTemps);
         deleteDirectory(mergedJar);
