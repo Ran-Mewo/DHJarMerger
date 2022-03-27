@@ -7,7 +7,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
 
-import java.io.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -104,18 +103,21 @@ public class MergeJarsTask extends DefaultTask {
 //        compress(mergedJar.getAbsolutePath());
         packer.pack(mergedJar.getAbsolutePath(), new File(jarMerger, jar + ".jar").getAbsolutePath());
 
-        Set<PosixFilePermission> perms = new HashSet<>(); // Create a list of the perms
-        // Adds all permissions to the jar
-        perms.add(PosixFilePermission.OTHERS_EXECUTE);
-        perms.add(PosixFilePermission.OTHERS_WRITE);
-        perms.add(PosixFilePermission.OTHERS_READ);
-        perms.add(PosixFilePermission.OWNER_EXECUTE);
-        perms.add(PosixFilePermission.OWNER_WRITE);
-        perms.add(PosixFilePermission.OWNER_READ);
-        perms.add(PosixFilePermission.GROUP_EXECUTE);
-        perms.add(PosixFilePermission.GROUP_WRITE);
-        perms.add(PosixFilePermission.GROUP_READ);
-        Files.setPosixFilePermissions(Path.of(new File(jarMerger, jar + ".jar").getAbsolutePath()), perms); // Apply the perms onto the jar
+        try {
+            Set<PosixFilePermission> perms = new HashSet<>(); // Create a list of the perms
+            // Adds all permissions to the jar
+            perms.add(PosixFilePermission.OTHERS_EXECUTE);
+            perms.add(PosixFilePermission.OTHERS_WRITE);
+            perms.add(PosixFilePermission.OTHERS_READ);
+            perms.add(PosixFilePermission.OWNER_EXECUTE);
+            perms.add(PosixFilePermission.OWNER_WRITE);
+            perms.add(PosixFilePermission.OWNER_READ);
+            perms.add(PosixFilePermission.GROUP_EXECUTE);
+            perms.add(PosixFilePermission.GROUP_WRITE);
+            perms.add(PosixFilePermission.GROUP_READ);
+            Files.setPosixFilePermissions(Path.of(new File(jarMerger, jar + ".jar").getAbsolutePath()), perms); // Apply the perms onto the jar
+        } catch (UnsupportedOperationException | IOException ignored) { }
+
 
         deleteDirectory(fabricTemps);
         deleteDirectory(mergedJar);
